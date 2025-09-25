@@ -1,15 +1,16 @@
 import { Asset } from "expo-asset";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import Svg, { G, Line, Path, SvgXml } from "react-native-svg";
+import { SvgXml } from "react-native-svg";
 import { Note, NotePosition } from "../types/NotePosition";
 
 export default function Porte() {
     const [svgContent, setSvgContent] = useState('');
-    const [clef, setClef] = useState<'treble' | 'bass'>('bass')
+    const [clef, setClef] = useState<'treble' | 'bass'>('treble')
     const [notes, setNotes] = useState<Note[]>([]);
 
-    const nbNote = 1;
+    const nbNote = 6;
+    const intervale = 8;
 
     const notePositions: NotePosition[] = clef == 'treble' ? [
         new NotePosition(200, true, 'Do'),
@@ -48,10 +49,28 @@ export default function Porte() {
 
     const addRandomNotes = () => {
         const notes: Note[] = []
-        for (let index = 0; index < nbNote; index++) {
-            const position = Math.floor(Math.random() * 15)
+        let lastPosition: number | null = null;
+        for (let index = 0; index <= nbNote; index++) {
+            let candidates: number[];
+
+            if(lastPosition == null) {
+                candidates = Array.from({length: notePositions.length + 1}, (_, i ) => i)
+            } else {
+                const min = Math.max(0, lastPosition - intervale);
+                const max = Math.min(notePositions.length, lastPosition + intervale)
+
+                candidates = [];
+                for (let i = min; i <max; i++) {
+                    if(i != lastPosition){
+                        candidates.push(i)
+                    }
+                }
+            }
+
+            const position = candidates[Math.floor(Math.random() * candidates.length)]
+            lastPosition = position;
             const note = notePositions[position];
-            notes.push(new Note(Math.random() + Date.now(), 120, notePositions[position], note.line && (position <= 2 || position >= 12), position >= 13))
+            notes.push(new Note(Math.random() + Date.now(), 110 + (index * 40), notePositions[position], note.line && (position <= 2 || position >= 12), position >= 13))
         }
         setNotes(notes)
     }
@@ -121,15 +140,10 @@ export default function Porte() {
 
             return noteElement;
         }).join('');
-        console.log('notes: ', notes);
-        console.log('svg: ', notesElements);
-
-
 
         // Créer la portée complète avec votre clé
         const completeStaff = clef == 'treble' ? `
         <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-        
             <g>
                 <!-- Les 5 lignes de la portée -->
                 <line x1="20" y1="75" x2="${width - 20}" y2="75" stroke="#000" stroke-width="1"/>
