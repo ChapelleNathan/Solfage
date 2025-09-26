@@ -2,90 +2,18 @@ import { Asset } from "expo-asset";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SvgXml } from "react-native-svg";
-import { Note, NotePosition } from "../types/NotePosition";
+import { getNotePositions, Note, NotePosition } from "../types/NotePosition";
 
-export default function Porte() {
+interface PorteProps {
+    notes: Note[],
+    clef: 'treble' | 'bass'
+}
+
+export default function Porte({notes, clef}: PorteProps) {
     const [svgContent, setSvgContent] = useState('');
-    const [clef, setClef] = useState<'treble' | 'bass'>('treble')
-    const [notes, setNotes] = useState<Note[]>([]);
-
-    const nbNote = 6;
-    const intervale = 8;
-
-    const notePositions: NotePosition[] = clef == 'treble' ? [
-        new NotePosition(200, true, 'Do'),
-        new NotePosition(187.5, false, 'Re'),
-        new NotePosition(175, true, 'Mi'),
-        new NotePosition(162.5, false, 'Fa'),
-        new NotePosition(150, true, 'Sol'),
-        new NotePosition(137.5, false, 'La'),
-        new NotePosition(125, true, 'Si'),
-        new NotePosition(112.5, false, 'Do'),
-        new NotePosition(100, true, 'Re'),
-        new NotePosition(87.5, false, 'Mi'),
-        new NotePosition(75, true, 'Fa'),
-        new NotePosition(62.5, false, 'Sol'),
-        new NotePosition(50, true, 'La'),
-        new NotePosition(37.5, false, 'Si'),
-        new NotePosition(25, true, 'Do'),
-    ] :
-        [
-            new NotePosition(50, true, 'Do'),
-            new NotePosition(62.5, false, 'Si'),
-            new NotePosition(75, true, 'La'),
-            new NotePosition(87.5, false, 'Sol'),
-            new NotePosition(100, true, 'Fa'),
-            new NotePosition(112.5, false, 'Mi'),
-            new NotePosition(125, true, 'Re'),
-            new NotePosition(137.5, false, 'Do'),
-            new NotePosition(150, true, 'Si'),
-            new NotePosition(162.5, false, 'La'),
-            new NotePosition(175, true, 'Sol'),
-            new NotePosition(187.5, false, 'Fa'),
-            new NotePosition(200, true, 'Mi'),
-            new NotePosition(212.5, false, 'Re'),
-            new NotePosition(225, true, 'Do')
-        ];
-
-    const addRandomNotes = () => {
-        const notes: Note[] = []
-        let lastPosition: number | null = null;
-        for (let index = 0; index <= nbNote; index++) {
-            let candidates: number[];
-
-            if(lastPosition == null) {
-                candidates = Array.from({length: notePositions.length + 1}, (_, i ) => i)
-            } else {
-                const min = Math.max(0, lastPosition - intervale);
-                const max = Math.min(notePositions.length, lastPosition + intervale)
-
-                candidates = [];
-                for (let i = min; i <max; i++) {
-                    if(i != lastPosition){
-                        candidates.push(i)
-                    }
-                }
-            }
-
-            const position = candidates[Math.floor(Math.random() * candidates.length)]
-            lastPosition = position;
-            const note = notePositions[position];
-            notes.push(new Note(Math.random() + Date.now(), 110 + (index * 40), notePositions[position], note.line && (position <= 2 || position >= 12), position >= 13))
-        }
-        setNotes(notes)
-    }
-
-    const clearNotes = () => {
-        setNotes([]);
-    }
 
     const width = 400;
     const height = 250;
-
-    useEffect(() => {
-        clearNotes();
-        addRandomNotes();
-    }, [])
 
     useEffect(() => {
         loadSvg();
@@ -109,7 +37,7 @@ export default function Porte() {
     };
 
     const combineStaffWithClef = (clefSvgText: string) => {
-        // Extraire le contenu de votre clé SVG (sans les balises svg)
+        // Extraire le contenu de la clé SVG (sans les balises svg)
         let clefContent = clefSvgText
             .replace(/<\?xml[^>]*>/g, '') // Supprimer déclaration XML
             .replace(/<!DOCTYPE[^>]*>/g, '') // Supprimer DOCTYPE
@@ -188,14 +116,6 @@ export default function Porte() {
             {svgContent ? (
                 <>
                     <SvgXml xml={svgContent} width={width} height={height} />
-                    <View style={{ flexDirection: 'row' }}>
-                        <TouchableOpacity style={{ borderWidth: 1, width: 100, marginLeft: 100 }} onPress={() => clearNotes()}>
-                            <Text>clear</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={{ borderWidth: 1, width: 100, marginLeft: 10 }} onPress={() => addRandomNotes()}>
-                            <Text>add</Text>
-                        </TouchableOpacity>
-                    </View>
                 </>
             ) : (
                 <Text>Chargement de la portée...</Text>
