@@ -11,12 +11,18 @@ export default function Notes({ notes, endHook }: NotesProps) {
     const buttons: NoteName[] = ['Do', 'Re', 'Mi', 'Fa', 'Sol', 'La', 'Si'];
 
     const pressButton = (noteName: NoteName) => {
-        if (notes[count].position.name == noteName && count < notes.length) {
+        // Safety check: ensure we have notes and count is within bounds
+        if (notes.length === 0 || count >= notes.length) {
+            return;
+        }
+
+        if (notes[count].position.name === noteName) {
             console.log('bravo');
             setCount(prev => prev + 1);
         }
 
-        if (count >= notes.length - 1) {
+        // Check if we've completed all notes
+        if (count >= notes.length) {
             console.log('fin d\'exo');
             setCount(0);
             endHook();

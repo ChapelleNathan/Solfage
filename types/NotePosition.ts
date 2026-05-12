@@ -33,41 +33,36 @@ export class Note {
 }
 
 export const getNotePositions = (clef: "treble" | "bass"): NotePosition[] => {
-    return clef === "treble"
-        ? [
-                new NotePosition(200, true, "Do"),
-                new NotePosition(187.5, false, "Re"),
-                new NotePosition(175, true, "Mi"),
-                new NotePosition(162.5, false, "Fa"),
-                new NotePosition(150, true, "Sol"),
-                new NotePosition(137.5, false, "La"),
-                new NotePosition(125, true, "Si"),
-                new NotePosition(112.5, false, "Do"),
-                new NotePosition(100, true, "Re"),
-                new NotePosition(87.5, false, "Mi"),
-                new NotePosition(75, true, "Fa"),
-                new NotePosition(62.5, false, "Sol"),
-                new NotePosition(50, true, "La"),
-                new NotePosition(37.5, false, "Si"),
-                new NotePosition(25, true, "Do"),
-        ]
-        : [
-                new NotePosition(50, true, "Do"),
-                new NotePosition(62.5, false, "Si"),
-                new NotePosition(75, true, "La"),
-                new NotePosition(87.5, false, "Sol"),
-                new NotePosition(100, true, "Fa"),
-                new NotePosition(112.5, false, "Mi"),
-                new NotePosition(125, true, "Re"),
-                new NotePosition(137.5, false, "Do"),
-                new NotePosition(150, true, "Si"),
-                new NotePosition(162.5, false, "La"),
-                new NotePosition(175, true, "Sol"),
-                new NotePosition(187.5, false, "Fa"),
-                new NotePosition(200, true, "Mi"),
-                new NotePosition(212.5, false, "Re"),
-                new NotePosition(225, true, "Do"),
-        ];
+    // Define the note names in order for both clefs
+    const noteNames: NoteName[] = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"];
+
+    if (clef === "treble") {
+        // Treble clef: from high Do (200) down to low Do (25)
+        // 15 notes total (2 octaves + 1 note)
+        return noteNames
+            .flatMap(name => Array(3).fill(name)) // Repeat each name 3 times for 3 octaves
+            .slice(0, 15) // Take first 15 notes
+            .map((name, index) => {
+                // Calculate position: start at 200 and go down by 12.5 each step
+                const y = 200 - (index * 12.5);
+                // Line notes are at even indices (0, 2, 4, ...)
+                const line = index % 2 === 0;
+                return new NotePosition(y, line, name);
+            });
+    } else {
+        // Bass clef: from low Do (50) up to high Do (225)
+        // 15 notes total (2 octaves + 1 note)
+        return noteNames
+            .flatMap(name => Array(3).fill(name)) // Repeat each name 3 times for 3 octaves
+            .slice(0, 15) // Take first 15 notes
+            .map((name, index) => {
+                // Calculate position: start at 50 and go up by 12.5 each step
+                const y = 50 + (index * 12.5);
+                // Line notes are at even indices (0, 2, 4, ...)
+                const line = index % 2 === 0;
+                return new NotePosition(y, line, name);
+            });
+    }
 };
 
 export type NoteName = "Do" | "Re" | "Mi" | "Fa" | "Sol" | "La" | "Si";
