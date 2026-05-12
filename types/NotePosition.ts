@@ -22,7 +22,7 @@ export class Note {
         x: number,
         position: NotePosition,
         needsLedgerLine: boolean,
-        needsIntermediateLedgerLine: boolean
+        needsIntermediateLedgerLine: boolean,
     ) {
         this.id = id;
         this.x = x;
@@ -33,23 +33,19 @@ export class Note {
 }
 
 export const getNotePositions = (clef: "treble" | "bass"): NotePosition[] => {
-    const noteNames: NoteName[] = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"];
-    // 15 notes = 2 octaves + Do : Do Re Mi Fa Sol La Si Do Re Mi Fa Sol La Si Do
-    const sequence: NoteName[] = Array.from({ length: 15 }, (_, i) => noteNames[i % 7]);
+    const notes: NoteName[] = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si", "Do", "Re", "Mi", "Fa", "Sol", "La", "Si", "Do"];
+    const notePositions: NotePosition[] = [];
 
-    if (clef === "treble") {
-        return sequence.map((name, index) => {
-            const y = 200 - (index * 12.5);
-            const line = index % 2 === 0;
-            return new NotePosition(y, line, name);
-        });
-    } else {
-        return sequence.map((name, index) => {
-            const y = 50 + (index * 12.5);
-            const line = index % 2 === 0;
-            return new NotePosition(y, line, name);
-        });
-    }
+    let start = clef === 'treble' ? 200 : 225;
+    let hasLedgerLine = true;
+    notes.map((note) => {
+        const position = new NotePosition(start, hasLedgerLine, note);
+        notePositions.push(position);
+        start =  start - 12.5;
+        hasLedgerLine = !hasLedgerLine;
+    });
+
+    return notePositions;
 };
 
 export type NoteName = "Do" | "Re" | "Mi" | "Fa" | "Sol" | "La" | "Si";

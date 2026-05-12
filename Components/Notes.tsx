@@ -30,10 +30,6 @@ export default function Notes({ notes, currentNoteIndex, onAnswer, endHook }: No
 
     return (
         <View>
-            {/* Debug */}
-            <Text style={styles.debugText}>
-                Note attendue : {currentNote ? currentNote.position.name : '—'} (#{currentNoteIndex + 1}/{notes.length})
-            </Text>
             <View style={styles.bottomBar}>
                 {buttons.map((btn, key) => (
                     <TouchableOpacity onPress={() => pressButton(btn)} key={key} style={styles.button}>

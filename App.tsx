@@ -69,15 +69,15 @@ export default function App() {
 
     if (clef === 'treble') {
       needsLedgerLine = position.line && (position.name === 'Do' || position.name === 'Re' ||
-                                          position.name === 'Mi' || position.name === 'Fa' ||
-                                          position.name === 'Sol' || position.name === 'La' ||
-                                          position.name === 'Si');
+        position.name === 'Mi' || position.name === 'Fa' ||
+        position.name === 'Sol' || position.name === 'La' ||
+        position.name === 'Si');
       needsIntermediateLedgerLine = position.name === 'Do' || position.name === 'Re';
     } else { // bass clef
       needsLedgerLine = position.line && (position.name === 'Do' || position.name === 'Re' ||
-                                          position.name === 'Mi' || position.name === 'Fa' ||
-                                          position.name === 'Sol' || position.name === 'La' ||
-                                          position.name === 'Si');
+        position.name === 'Mi' || position.name === 'Fa' ||
+        position.name === 'Sol' || position.name === 'La' ||
+        position.name === 'Si');
       needsIntermediateLedgerLine = position.name === 'Sol' || position.name === 'La';
     }
 
@@ -116,15 +116,17 @@ export default function App() {
   return (
     <View style={styles.container}>
       <View style={styles.porte}>
-        <Porte notes={notes} clef={clef} currentNoteIndex={currentNoteIndex} noteStatus={noteStatus}/>
+        <Porte notes={notes} clef={clef} currentNoteIndex={currentNoteIndex} noteStatus={noteStatus} />
       </View>
-      <TouchableOpacity onPress={handleAddRandomNotes} style={styles.buttonAdd}>
-        <Text>add notes</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => setClef(clef === 'treble' ? 'bass' : 'treble')} style={styles.buttonClef}>
-        <Text>{clef === 'treble' ? 'Basse' : 'Sol'} clef</Text>
-      </TouchableOpacity>
-      <Notes notes={notes} currentNoteIndex={currentNoteIndex} onAnswer={handleAnswer} endHook={handleAddRandomNotes}/>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity onPress={handleAddRandomNotes} style={styles.buttonAdd}>
+          <Text>add notes</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setClef(clef === 'treble' ? 'bass' : 'treble')} style={styles.buttonClef}>
+          <Text>{clef === 'treble' ? 'Basse' : 'Sol'} clef</Text>
+        </TouchableOpacity>
+      </View>
+      <Notes notes={notes} currentNoteIndex={currentNoteIndex} onAnswer={handleAnswer} endHook={handleAddRandomNotes} />
       <StatusBar style="auto" />
     </View>
   );
@@ -140,18 +142,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 20,
+  },
   buttonAdd: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
     backgroundColor: '#007AFF',
     padding: 10,
     borderRadius: 5,
   },
   buttonClef: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
     backgroundColor: '#FF9500',
     padding: 10,
     borderRadius: 5,

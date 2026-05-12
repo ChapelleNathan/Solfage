@@ -2,7 +2,7 @@ import { Asset } from "expo-asset";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SvgXml } from "react-native-svg";
-import { getNotePositions, Note, NotePosition } from "../types/NotePosition";
+import { Note } from "../types/NotePosition";
 import { NoteStatus } from "../App";
 
 interface PorteProps {
