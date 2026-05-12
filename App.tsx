@@ -1,7 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Modal } from 'react-native';
 import Porte from './Components/Porte';
 import Notes from './Components/Notes';
+import Parameters from './Components/Parameters';
 import { getNotePositions, Note, NotePosition } from './types/NotePosition';
 import { useEffect, useRef, useState } from 'react';
 
@@ -13,24 +14,23 @@ export default function App() {
   const [currentNoteIndex, setCurrentNoteIndex] = useState(0);
   const [noteStatus, setNoteStatus] = useState<NoteStatus>('idle');
   const feedbackTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Configuration constants
-  const NB_NOTE = 6;
-  const INTERVALLE = 10;
-  const notePositions = getNotePositions(clef);
+  const [nbNote, setNbNote] = useState(6); // nombre de notes sur la portée
+  const [intervalle, setIntervalle] = useState(10); // intervalle entre les notes
+  const [parametersModalVisible, setParametersModalVisible] = useState(false);
 
   const addRandomNotes = () => {
     const generatedNote: Note[] = [];
     let lastPosition: number | null = null;
+    const notePositions = getNotePositions(clef);
 
-    for (let index = 0; index <= NB_NOTE; index++) {
+    for (let index = 0; index < nbNote; index++) {
       let candidates: number[];
 
       if (lastPosition == null) {
         candidates = Array.from({ length: notePositions.length }, (_, i) => i)
       } else {
-        const min = Math.max(0, lastPosition - INTERVALLE);
-        const max = Math.min(notePositions.length - 1, lastPosition + INTERVALLE)
+        const min = Math.max(0, lastPosition - intervalle);
+        const max = Math.min(notePositions.length - 1, lastPosition + intervalle)
 
         candidates = [];
         for (let i = min; i <= max; i++) {
@@ -105,13 +105,20 @@ export default function App() {
 
   useEffect(() => {
     addRandomNotes();
-  }, [clef]); // Regenerate notes when clef changes
+  }, [clef, nbNote, intervalle]); // Regenerate notes when clef, nbNote, or intervalle changes
 
   useEffect(() => {
     setCurrentNoteIndex(0);
     setNoteStatus('idle');
   }, [notes]);
 
+  const openParametersModal = () => {
+    setParametersModalVisible(true);
+  };
+
+  const closeParametersModal = () => {
+    setParametersModalVisible(false);
+  };
 
   return (
     <View style={styles.container}>
@@ -125,8 +132,19 @@ export default function App() {
         <TouchableOpacity onPress={() => setClef(clef === 'treble' ? 'bass' : 'treble')} style={styles.buttonClef}>
           <Text>{clef === 'treble' ? 'Basse' : 'Sol'} clef</Text>
         </TouchableOpacity>
+        <TouchableOpacity onPress={openParametersModal} style={styles.buttonParams}>
+          <Text>paramètres</Text>
+        </TouchableOpacity>
       </View>
       <Notes notes={notes} currentNoteIndex={currentNoteIndex} onAnswer={handleAnswer} endHook={handleAddRandomNotes} />
+      <Parameters
+        nbNote={nbNote}
+        intervalle={intervalle}
+        onNbNoteChange={setNbNote}
+        onIntervalleChange={setIntervalle}
+        visible={parametersModalVisible}
+        onClose={closeParametersModal}
+      />
       <StatusBar style="auto" />
     </View>
   );
@@ -154,6 +172,11 @@ const styles = StyleSheet.create({
   },
   buttonClef: {
     backgroundColor: '#FF9500',
+    padding: 10,
+    borderRadius: 5,
+  },
+  buttonParams: {
+    backgroundColor: '#9C27B0',
     padding: 10,
     borderRadius: 5,
   }
