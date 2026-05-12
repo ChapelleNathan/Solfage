@@ -33,35 +33,22 @@ export class Note {
 }
 
 export const getNotePositions = (clef: "treble" | "bass"): NotePosition[] => {
-    // Define the note names in order for both clefs
     const noteNames: NoteName[] = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si"];
+    // 15 notes = 2 octaves + Do : Do Re Mi Fa Sol La Si Do Re Mi Fa Sol La Si Do
+    const sequence: NoteName[] = Array.from({ length: 15 }, (_, i) => noteNames[i % 7]);
 
     if (clef === "treble") {
-        // Treble clef: from high Do (200) down to low Do (25)
-        // 15 notes total (2 octaves + 1 note)
-        return noteNames
-            .flatMap(name => Array(3).fill(name)) // Repeat each name 3 times for 3 octaves
-            .slice(0, 15) // Take first 15 notes
-            .map((name, index) => {
-                // Calculate position: start at 200 and go down by 12.5 each step
-                const y = 200 - (index * 12.5);
-                // Line notes are at even indices (0, 2, 4, ...)
-                const line = index % 2 === 0;
-                return new NotePosition(y, line, name);
-            });
+        return sequence.map((name, index) => {
+            const y = 200 - (index * 12.5);
+            const line = index % 2 === 0;
+            return new NotePosition(y, line, name);
+        });
     } else {
-        // Bass clef: from low Do (50) up to high Do (225)
-        // 15 notes total (2 octaves + 1 note)
-        return noteNames
-            .flatMap(name => Array(3).fill(name)) // Repeat each name 3 times for 3 octaves
-            .slice(0, 15) // Take first 15 notes
-            .map((name, index) => {
-                // Calculate position: start at 50 and go up by 12.5 each step
-                const y = 50 + (index * 12.5);
-                // Line notes are at even indices (0, 2, 4, ...)
-                const line = index % 2 === 0;
-                return new NotePosition(y, line, name);
-            });
+        return sequence.map((name, index) => {
+            const y = 50 + (index * 12.5);
+            const line = index % 2 === 0;
+            return new NotePosition(y, line, name);
+        });
     }
 };
 

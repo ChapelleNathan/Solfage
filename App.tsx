@@ -3,11 +3,16 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Porte from './Components/Porte';
 import Notes from './Components/Notes';
 import { getNotePositions, Note, NotePosition } from './types/NotePosition';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+export type NoteStatus = 'idle' | 'correct' | 'wrong';
 
 export default function App() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [clef, setClef] = useState<'treble' | 'bass'>('bass');
+  const [currentNoteIndex, setCurrentNoteIndex] = useState(0);
+  const [noteStatus, setNoteStatus] = useState<NoteStatus>('idle');
+  const feedbackTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Configuration constants
   const NB_NOTE = 6;
@@ -64,38 +69,62 @@ export default function App() {
 
     if (clef === 'treble') {
       needsLedgerLine = position.line && (position.name === 'Do' || position.name === 'Re' ||
-                                         position.name === 'Mi' || position.name === 'Fa' ||
-                                         position.name === 'Sol' || position.name === 'La' ||
-                                         position.name === 'Si');
+                                          position.name === 'Mi' || position.name === 'Fa' ||
+                                          position.name === 'Sol' || position.name === 'La' ||
+                                          position.name === 'Si');
       needsIntermediateLedgerLine = position.name === 'Do' || position.name === 'Re';
     } else { // bass clef
       needsLedgerLine = position.line && (position.name === 'Do' || position.name === 'Re' ||
-                                         position.name === 'Mi' || position.name === 'Fa' ||
-                                         position.name === 'Sol' || position.name === 'La' ||
-                                         position.name === 'Si');
+                                          position.name === 'Mi' || position.name === 'Fa' ||
+                                          position.name === 'Sol' || position.name === 'La' ||
+                                          position.name === 'Si');
       needsIntermediateLedgerLine = position.name === 'Sol' || position.name === 'La';
     }
 
     return new Note(id, x, position, needsLedgerLine, needsIntermediateLedgerLine);
   };
 
+  const handleAddRandomNotes = () => {
+    setCurrentNoteIndex(0);
+    setNoteStatus('idle');
+    addRandomNotes();
+  };
+
+  const handleAnswer = (correct: boolean, nextIndex: number) => {
+    if (feedbackTimeout.current) clearTimeout(feedbackTimeout.current);
+
+    if (correct) {
+      setNoteStatus('correct');
+      setCurrentNoteIndex(nextIndex);
+      feedbackTimeout.current = setTimeout(() => setNoteStatus('idle'), 500);
+    } else {
+      setNoteStatus('wrong');
+      feedbackTimeout.current = setTimeout(() => setNoteStatus('idle'), 500);
+    }
+  };
+
   useEffect(() => {
     addRandomNotes();
   }, [clef]); // Regenerate notes when clef changes
+
+  useEffect(() => {
+    setCurrentNoteIndex(0);
+    setNoteStatus('idle');
+  }, [notes]);
 
 
   return (
     <View style={styles.container}>
       <View style={styles.porte}>
-        <Porte notes={notes} clef={clef}/>
+        <Porte notes={notes} clef={clef} currentNoteIndex={currentNoteIndex} noteStatus={noteStatus}/>
       </View>
-      <TouchableOpacity onPress={addRandomNotes} style={styles.buttonAdd}>
+      <TouchableOpacity onPress={handleAddRandomNotes} style={styles.buttonAdd}>
         <Text>add notes</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => setClef(clef === 'treble' ? 'bass' : 'treble')} style={styles.buttonClef}>
         <Text>{clef === 'treble' ? 'Basse' : 'Sol'} clef</Text>
       </TouchableOpacity>
-      <Notes notes={notes} endHook={addRandomNotes}/>
+      <Notes notes={notes} currentNoteIndex={currentNoteIndex} onAnswer={handleAnswer} endHook={handleAddRandomNotes}/>
       <StatusBar style="auto" />
     </View>
   );

@@ -3,13 +3,16 @@ import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SvgXml } from "react-native-svg";
 import { getNotePositions, Note, NotePosition } from "../types/NotePosition";
+import { NoteStatus } from "../App";
 
 interface PorteProps {
     notes: Note[],
-    clef: 'treble' | 'bass'
+    clef: 'treble' | 'bass',
+    currentNoteIndex: number,
+    noteStatus: NoteStatus,
 }
 
-export default function Porte({notes, clef}: PorteProps) {
+export default function Porte({notes, clef, currentNoteIndex, noteStatus}: PorteProps) {
     const [svgContent, setSvgContent] = useState('');
 
     const width = 400;
@@ -17,7 +20,7 @@ export default function Porte({notes, clef}: PorteProps) {
 
     useEffect(() => {
         loadSvg();
-    }, [clef, notes])
+    }, [clef, notes, currentNoteIndex, noteStatus])
 
     const loadSvg = async () => {
         try {
@@ -47,24 +50,47 @@ export default function Porte({notes, clef}: PorteProps) {
             .trim();
 
         // Création du svg des notes
-        const notesElements = notes.map(note => {
+        const notesElements = notes.map((note, index) => {
             let noteElement = '';
 
+            const isCurrent = index === currentNoteIndex;
+            const isPast = index < currentNoteIndex;
+
+            let fill: string;
+            let opacity: string;
+
+            if (isCurrent) {
+                if (noteStatus === 'correct') {
+                    fill = '#22c55e'; // vert
+                } else if (noteStatus === 'wrong') {
+                    fill = '#ef4444'; // rouge
+                } else {
+                    fill = '#000';
+                }
+                opacity = '1';
+            } else if (isPast) {
+                fill = '#000';
+                opacity = '0.15';
+            } else {
+                fill = '#000';
+                opacity = '0.15';
+            }
+
+            const ledgerStroke = isCurrent ? fill : '#000';
+            const ledgerOpacity = isCurrent ? '1' : '0.15';
+
             if (note.needsLedgerLine) {
-                noteElement += `<line x1="${note.x - 30}" y1="${note.position.y}" x2="${note.x + 30}" y2="${note.position.y}" stroke="#000" stroke-width="1"/>`;
+                noteElement += `<line x1="${note.x - 30}" y1="${note.position.y}" x2="${note.x + 30}" y2="${note.position.y}" stroke="${ledgerStroke}" stroke-width="1" opacity="${ledgerOpacity}"/>`;
             }
 
             if (note.needsIntermediateLedgerLine) {
                 clef == 'treble' ?
-                    noteElement += `<line x1="${note.x - 30}" y1="${note.position.y + (note.needsLedgerLine ? 25 : 12.5)}" x2="${note.x + 30}" y2="${note.position.y + (note.needsLedgerLine ? 25 : 12.5)}" stroke="#000" stroke-width="1"/>`
+                    noteElement += `<line x1="${note.x - 30}" y1="${note.position.y + (note.needsLedgerLine ? 25 : 12.5)}" x2="${note.x + 30}" y2="${note.position.y + (note.needsLedgerLine ? 25 : 12.5)}" stroke="${ledgerStroke}" stroke-width="1" opacity="${ledgerOpacity}"/>`
                     :
-                    noteElement += `<line x1="${note.x - 30}" y1="${note.position.y - (note.needsLedgerLine ? 25 : 12.5)}" x2="${note.x + 30}" y2="${note.position.y - (note.needsLedgerLine ? 25 : 12.5)}" stroke="#000" stroke-width="1"/>`;
-                }   
+                    noteElement += `<line x1="${note.x - 30}" y1="${note.position.y - (note.needsLedgerLine ? 25 : 12.5)}" x2="${note.x + 30}" y2="${note.position.y - (note.needsLedgerLine ? 25 : 12.5)}" stroke="${ledgerStroke}" stroke-width="1" opacity="${ledgerOpacity}"/>`;
+            }
 
-            noteElement += `
-            <ellipse cx="${note.x}" cy="${note.position.y}" rx="14" ry="10" fill="#000" transform="rotate(-20 ${note.x} ${note.position.y})"/>
-            `;
-            
+            noteElement += `<ellipse cx="${note.x}" cy="${note.position.y}" rx="14" ry="10" fill="${fill}" opacity="${opacity}" transform="rotate(-20 ${note.x} ${note.position.y})"/>`;
 
             return noteElement;
         }).join('');
