@@ -18,13 +18,13 @@ export default function Parameters({ nbNote, intervalle, onNbNoteChange, onInter
 
           {/* Intervalle entre les notes */}
           <View style={styles.settingRow}>
-            <Text style={styles.settingLabel}>Intervalle entre les notes :</Text>
+            <Text style={styles.settingLabel}>Écart entre notes :</Text>
             <View style={styles.settingValueContainer}>
-              <TouchableOpacity onPress={() => onIntervalleChange(intervalle - 1)} style={styles.button}>
+              <TouchableOpacity onPress={() => intervalle > 1 && onIntervalleChange(intervalle - 1)} style={[styles.button, intervalle <= 1 && styles.buttonDisabled]}>
                 <Text>-</Text>
               </TouchableOpacity>
               <Text style={styles.settingValue}>{intervalle}</Text>
-              <TouchableOpacity onPress={() => onIntervalleChange(intervalle + 1)} style={styles.button}>
+              <TouchableOpacity onPress={() => intervalle < 10 && onIntervalleChange(intervalle + 1)} style={[styles.button, intervalle >= 10 && styles.buttonDisabled]}>
                 <Text>+</Text>
               </TouchableOpacity>
             </View>
@@ -32,13 +32,13 @@ export default function Parameters({ nbNote, intervalle, onNbNoteChange, onInter
 
           {/* Nombre de notes sur la portée */}
           <View style={styles.settingRow}>
-            <Text style={styles.settingLabel}>Nombre de notes sur la portée :</Text>
+            <Text style={styles.settingLabel}>Nombre de notes :</Text>
             <View style={styles.settingValueContainer}>
-              <TouchableOpacity onPress={() => onNbNoteChange(nbNote - 1)} style={styles.button}>
+              <TouchableOpacity onPress={() => nbNote > 1 && onNbNoteChange(nbNote - 1)} style={[styles.button, nbNote <= 1 && styles.buttonDisabled]}>
                 <Text>-</Text>
               </TouchableOpacity>
               <Text style={styles.settingValue}>{nbNote}</Text>
-              <TouchableOpacity onPress={() => onNbNoteChange(nbNote + 1)} style={styles.button}>
+              <TouchableOpacity onPress={() => nbNote < 7 && onNbNoteChange(nbNote + 1)} style={[styles.button, nbNote >= 7 && styles.buttonDisabled]}>
                 <Text>+</Text>
               </TouchableOpacity>
             </View>
@@ -64,8 +64,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 20,
     borderRadius: 10,
-    width: '80%',
-    maxWidth: 400,
+    width: '90%',
+    maxWidth: 500,
   },
   title: {
     fontSize: 24,
@@ -112,5 +112,8 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  buttonDisabled: {
+    backgroundColor: '#bbb',
   },
 });
