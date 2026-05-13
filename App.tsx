@@ -5,8 +5,26 @@ import Notes from './Components/Notes';
 import Parameters from './Components/Parameters';
 import { getNotePositions, Note, NotePosition } from './types/NotePosition';
 import { useEffect, useRef, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type NoteStatus = 'idle' | 'correct' | 'wrong';
+
+const STORAGE_KEY = 'solfage_params';
+
+async function loadParams(): Promise<{ clefMode: 'treble' | 'bass' | 'random'; nbNote: number; intervalle: number } | null> {
+  try {
+    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+async function saveParams(clefMode: 'treble' | 'bass' | 'random', nbNote: number, intervalle: number) {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ clefMode, nbNote, intervalle }));
+  } catch {}
+}
 
 export default function App() {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -15,9 +33,21 @@ export default function App() {
   const [currentNoteIndex, setCurrentNoteIndex] = useState(0);
   const [noteStatus, setNoteStatus] = useState<NoteStatus>('idle');
   const feedbackTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [nbNote, setNbNote] = useState(6); // nombre de notes sur la portée
-  const [intervalle, setIntervalle] = useState(10); // intervalle entre les notes
+  const [nbNote, setNbNote] = useState(6);
+  const [intervalle, setIntervalle] = useState(10);
   const [parametersModalVisible, setParametersModalVisible] = useState(false);
+  const paramsLoaded = useRef(false);
+
+  useEffect(() => {
+    loadParams().then(saved => {
+      if (saved) {
+        setClefMode(saved.clefMode);
+        setNbNote(saved.nbNote);
+        setIntervalle(saved.intervalle);
+      }
+      paramsLoaded.current = true;
+    });
+  }, []);
 
   // Initialize actualClef based on clefMode
   useEffect(() => {
@@ -156,9 +186,9 @@ export default function App() {
         nbNote={nbNote}
         intervalle={intervalle}
         clefMode={clefMode}
-        onNbNoteChange={setNbNote}
-        onIntervalleChange={setIntervalle}
-        onClefModeChange={setClefMode}
+        onNbNoteChange={val => { setNbNote(val); saveParams(clefMode, val, intervalle); }}
+        onIntervalleChange={val => { setIntervalle(val); saveParams(clefMode, nbNote, val); }}
+        onClefModeChange={val => { setClefMode(val); saveParams(val, nbNote, intervalle); }}
         visible={parametersModalVisible}
         onClose={closeParametersModal}
       />
