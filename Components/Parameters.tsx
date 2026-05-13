@@ -3,13 +3,15 @@ import { Text, View, StyleSheet, TouchableOpacity, Modal } from "react-native";
 interface ParametersProps {
   nbNote: number;
   intervalle: number;
+  clefMode: 'treble' | 'bass' | 'random';
   onNbNoteChange: (value: number) => void;
   onIntervalleChange: (value: number) => void;
+  onClefModeChange: (clefMode: 'treble' | 'bass' | 'random') => void;
   visible: boolean;
   onClose: () => void;
 }
 
-export default function Parameters({ nbNote, intervalle, onNbNoteChange, onIntervalleChange, visible, onClose }: ParametersProps) {
+export default function Parameters({ nbNote, intervalle, clefMode, onNbNoteChange, onIntervalleChange, onClefModeChange, visible, onClose }: ParametersProps) {
   return (
     <Modal transparent visible={visible} animationType="fade">
       <View style={styles.background}>
@@ -40,6 +42,31 @@ export default function Parameters({ nbNote, intervalle, onNbNoteChange, onInter
               <Text style={styles.settingValue}>{nbNote}</Text>
               <TouchableOpacity onPress={() => nbNote < 7 && onNbNoteChange(nbNote + 1)} style={[styles.button, nbNote >= 7 && styles.buttonDisabled]}>
                 <Text>+</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Clef selection */}
+          <View style={styles.settingRow}>
+            <Text style={styles.settingLabel}>Clef :</Text>
+            <View style={styles.clefContainer}>
+              <TouchableOpacity
+                onPress={() => onClefModeChange('treble')}
+                style={[styles.clefButton, clefMode === 'treble' && styles.clefButtonActive]}
+              >
+                <Text>Sol</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => onClefModeChange('bass')}
+                style={[styles.clefButton, clefMode === 'bass' && styles.clefButtonActive]}
+              >
+                <Text>Fa</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => onClefModeChange('random')}
+                style={[styles.clefButton, clefMode === 'random' && styles.clefButtonActive]}
+              >
+                <Text>Aléatoire</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -115,5 +142,19 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     backgroundColor: '#bbb',
+  },
+  clefContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  clefButton: {
+    backgroundColor: '#ddd',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 5,
+    marginHorizontal: 5,
+  },
+  clefButtonActive: {
+    backgroundColor: '#007AFF',
   },
 });

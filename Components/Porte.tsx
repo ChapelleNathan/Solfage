@@ -33,13 +33,13 @@ export default function Porte({notes, clef, currentNoteIndex, noteStatus}: Porte
 
             const response = await fetch(asset.uri);
             const svgText = await response.text();
-            combineStaffWithClef(svgText);
+            combineStaffWithClef(svgText, clef);
         } catch (error) {
             console.error('Erreur lors du chargement du SVG:', error);
         }
     };
 
-    const combineStaffWithClef = (clefSvgText: string) => {
+    const combineStaffWithClef = (clefSvgText: string, actualClef: 'treble' | 'bass') => {
         // Extraire le contenu de la clé SVG (sans les balises svg)
         let clefContent = clefSvgText
             .replace(/<\?xml[^>]*>/g, '') // Supprimer déclaration XML
@@ -84,7 +84,7 @@ export default function Porte({notes, clef, currentNoteIndex, noteStatus}: Porte
             }
 
             if (note.needsIntermediateLedgerLine) {
-                clef == 'treble' ?
+                actualClef == 'treble' ?
                     noteElement += `<line x1="${note.x - 30}" y1="${note.position.y + (note.needsLedgerLine ? 25 : 12.5)}" x2="${note.x + 30}" y2="${note.position.y + (note.needsLedgerLine ? 25 : 12.5)}" stroke="${ledgerStroke}" stroke-width="1" opacity="${ledgerOpacity}"/>`
                     :
                     noteElement += `<line x1="${note.x - 30}" y1="${note.position.y - (note.needsLedgerLine ? 25 : 12.5)}" x2="${note.x + 30}" y2="${note.position.y - (note.needsLedgerLine ? 25 : 12.5)}" stroke="${ledgerStroke}" stroke-width="1" opacity="${ledgerOpacity}"/>`;
@@ -96,7 +96,7 @@ export default function Porte({notes, clef, currentNoteIndex, noteStatus}: Porte
         }).join('');
 
         // Créer la portée complète avec votre clé
-        const completeStaff = clef == 'treble' ? `
+        const completeStaff = actualClef == 'treble' ? `
         <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
             <g>
                 <!-- Les 5 lignes de la portée -->
@@ -116,7 +116,7 @@ export default function Porte({notes, clef, currentNoteIndex, noteStatus}: Porte
         ` :
             `
             <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-        
+
             <g>
                 <!-- Les 5 lignes de la portée -->
                 <line x1="20" y1="75" x2="${width - 20}" y2="75" stroke="#000" stroke-width="1"/>

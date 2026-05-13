@@ -10,7 +10,8 @@ export type NoteStatus = 'idle' | 'correct' | 'wrong';
 
 export default function App() {
   const [notes, setNotes] = useState<Note[]>([]);
-  const [clef, setClef] = useState<'treble' | 'bass'>('bass');
+  const [clefMode, setClefMode] = useState<'treble' | 'bass' | 'random'>('bass');
+  const [actualClef, setActualClef] = useState<'treble' | 'bass'>('bass');
   const [currentNoteIndex, setCurrentNoteIndex] = useState(0);
   const [noteStatus, setNoteStatus] = useState<NoteStatus>('idle');
   const feedbackTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -18,7 +19,20 @@ export default function App() {
   const [intervalle, setIntervalle] = useState(10); // intervalle entre les notes
   const [parametersModalVisible, setParametersModalVisible] = useState(false);
 
-  const addRandomNotes = () => {
+  // Initialize actualClef based on clefMode
+  useEffect(() => {
+    if (clefMode === 'treble') {
+      setActualClef('treble');
+    } else if (clefMode === 'bass') {
+      setActualClef('bass');
+    } else if (clefMode === 'random') {
+      // Only set initial random clef if we don't already have one set for random mode
+      // This prevents resetting the clef on every re-render when in random mode
+      setActualClef(Math.random() < 0.5 ? 'treble' : 'bass');
+    }
+  }, [clefMode]); // Only run when clefMode changes, not on every render
+
+  const addRandomNotes = (clef: 'treble' | 'bass' = actualClef) => {
     const generatedNote: Note[] = [];
     let lastPosition: number | null = null;
     const notePositions = getNotePositions(clef);
@@ -27,15 +41,15 @@ export default function App() {
       let candidates: number[];
 
       if (lastPosition == null) {
-        candidates = Array.from({ length: notePositions.length }, (_, i) => i)
+        candidates = Array.from({ length: notePositions.length }, (_, i) => i);
       } else {
         const min = Math.max(0, lastPosition - intervalle);
-        const max = Math.min(notePositions.length - 1, lastPosition + intervalle)
+        const max = Math.min(notePositions.length - 1, lastPosition + intervalle);
 
         candidates = [];
         for (let i = min; i <= max; i++) {
-          if (i != lastPosition) {
-            candidates.push(i)
+          if (i !== lastPosition) {
+            candidates.push(i);
           }
         }
       }
@@ -44,17 +58,9 @@ export default function App() {
       lastPosition = position;
       const notePosition = notePositions[position];
 
-      // Refactored note creation for better readability
-      const note = createNote(
-        Math.random() + Date.now(),
-        110 + (index * 40),
-        notePosition,
-        clef
-      );
-
-      generatedNote.push(note);
+      generatedNote.push(createNote(Math.random() + Date.now(), 110 + (index * 40), notePosition, clef));
     }
-    setNotes(generatedNote)
+    setNotes(generatedNote);
   };
 
   // Helper function to create notes with clef-specific logic
@@ -87,7 +93,13 @@ export default function App() {
   const handleAddRandomNotes = () => {
     setCurrentNoteIndex(0);
     setNoteStatus('idle');
-    addRandomNotes();
+    if (clefMode === 'random') {
+      const newClef = Math.random() < 0.5 ? 'treble' : 'bass';
+      setActualClef(newClef);
+      addRandomNotes(newClef);
+    } else {
+      addRandomNotes();
+    }
   };
 
   const handleAnswer = (correct: boolean, nextIndex: number) => {
@@ -104,8 +116,14 @@ export default function App() {
   };
 
   useEffect(() => {
+    if (clefMode !== 'random') {
+      addRandomNotes();
+    }
+  }, [actualClef]);
+
+  useEffect(() => {
     addRandomNotes();
-  }, [clef, nbNote, intervalle]); // Regenerate notes when clef, nbNote, or intervalle changes
+  }, [nbNote, intervalle]);
 
   useEffect(() => {
     setCurrentNoteIndex(0);
@@ -123,14 +141,11 @@ export default function App() {
   return (
     <View style={styles.container}>
       <View style={styles.porte}>
-        <Porte notes={notes} clef={clef} currentNoteIndex={currentNoteIndex} noteStatus={noteStatus} />
+        <Porte notes={notes} clef={actualClef} currentNoteIndex={currentNoteIndex} noteStatus={noteStatus} />
       </View>
       <View style={styles.buttonContainer}>
         <TouchableOpacity onPress={handleAddRandomNotes} style={styles.buttonAdd}>
           <Text>add notes</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setClef(clef === 'treble' ? 'bass' : 'treble')} style={styles.buttonClef}>
-          <Text>{clef === 'treble' ? 'Basse' : 'Sol'} clef</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={openParametersModal} style={styles.buttonParams}>
           <Text>paramètres</Text>
@@ -140,8 +155,10 @@ export default function App() {
       <Parameters
         nbNote={nbNote}
         intervalle={intervalle}
+        clefMode={clefMode}
         onNbNoteChange={setNbNote}
         onIntervalleChange={setIntervalle}
+        onClefModeChange={setClefMode}
         visible={parametersModalVisible}
         onClose={closeParametersModal}
       />
