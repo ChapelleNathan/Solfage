@@ -23,7 +23,7 @@ async function loadParams(): Promise<{ clefMode: 'treble' | 'bass' | 'random'; n
 async function saveParams(clefMode: 'treble' | 'bass' | 'random', nbNote: number, intervalle: number) {
   try {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ clefMode, nbNote, intervalle }));
-  } catch {}
+  } catch { }
 }
 
 export default function App() {
@@ -48,6 +48,14 @@ export default function App() {
       paramsLoaded.current = true;
     });
   }, []);
+
+  useEffect(() => {
+    // On ne sauvegarde que si les paramètres ont déjà été chargés une première fois
+    // pour éviter d'écraser le stockage avec les valeurs par défaut au démarrage
+    if (paramsLoaded.current) {
+      saveParams(clefMode, nbNote, intervalle);
+    }
+  }, [clefMode, nbNote, intervalle]);
 
   // Initialize actualClef based on clefMode
   useEffect(() => {
@@ -186,9 +194,9 @@ export default function App() {
         nbNote={nbNote}
         intervalle={intervalle}
         clefMode={clefMode}
-        onNbNoteChange={val => { setNbNote(val); saveParams(clefMode, val, intervalle); }}
-        onIntervalleChange={val => { setIntervalle(val); saveParams(clefMode, nbNote, val); }}
-        onClefModeChange={val => { setClefMode(val); saveParams(val, nbNote, intervalle); }}
+        onNbNoteChange={setNbNote} // Plus simple
+        onIntervalleChange={setIntervalle}
+        onClefModeChange={setClefMode}
         visible={parametersModalVisible}
         onClose={closeParametersModal}
       />
